@@ -1,0 +1,26 @@
+readme - backup mongodb, compress it and upload to AWS S3
+---------------------------------------------------------
+
+0. Install and setup mongodb and AWS S3tool (s3cmd)
+https://survivalguides.wordpress.com/2012/04/02/installing-s3cmd-on-amazon-server/
+
+1. Command to backup mongodb:
+http://docs.mongodb.org/manual/tutorial/backup-with-mongodump/
+
+2. Build a shell script to do backup, tar it and upload to aws s3 (as follow)
+
+-----------------------------------------------------------------
+#! /bin/sh
+
+mongodump -d ts -o .
+tar -cvf ts`date +%y%m%d`.tar ./ts
+/opt/s3cmd/s3cmd put ts`date +%y%m%d`.tar s3://tsbackuptest/test/
+-----------------------------------------------------------------
+
+3. Use crontab to set it run everyday
+use `crontab -e` to open a file to edit, and enter
+
+----------------------------------
+0 0 * * * /home/ec2-user/backup.sh
+----------------------------------
+*The 0 0 * * * refer to minute, hour, day, month, year correspondingly

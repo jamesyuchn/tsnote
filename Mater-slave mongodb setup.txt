@@ -1,0 +1,37 @@
+Tutorial about setting up a master-slave mode Mongodb
+-----------------------------------------------------
+
+0. Create an AWS account and two t2.micro instances of Amazon EC2 (follow aws documentation)
+download and copy .pem key to ssh folder
+
+*login into EC2 instance:
+ssh -i ~/.ssh/my-aws-key.pem ec2-user@ec2-54-165-195-20.compute-1.amazonaws.com
+// when instance’s public ip is 54.165.195.20, and pem key file is “my-aws-key.pem”
+
+Install mongodb on both EC2 instances
+http://docs.mongodb.org/ecosystem/platforms/amazon-ec2/
+
+ssh into EC2 instance
+
+for master, run 
+sudo mongod --rest --master --smallfiles --dbpath /home/ec2-user/nodetest1/nodetest1/data
+// use --smallfile because Amazon's free micro instance has limited space for log
+// use --dbpath to modify database's path
+
+for slave, run
+sudo mongod --rest --slave --smallfiles --source 54.165.195.94:27017 --fastsync --autoresync
+// change ip address to the master's public ip
+
+http://docs.mongodb.org/manual/core/master-slave/
+
+*if master's public ip changes, 'sudo mongo', 'use local' then delete data inside collection 'source', because previous master's ip is saved there and will lead to an error
+
+Note about connecting RDS(postgresql) to EC2 instance
+-----------------------------------------------------
+
+0. Create a postgresql database by AWS RDS configuration (follow aws documentation)
+
+*login into RDS from EC2
+sudo psql --host=ts-db-test.c60kkehg3nub.us-east-1.rds.amazonaws.com --port=5432 --username=tsdbuser --password --dbname=testdb
+// host name, user name and dbname should be modified
+
