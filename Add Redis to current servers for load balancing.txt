@@ -1,0 +1,28 @@
+Note about adding Redis to servers to connect sockets
+-----------------------------------------------------
+
+After load balancing, multiple servers can only work with sockets connected to them. If nginx send a box and a client(browser) to different servers, the client cannot reach the box. The socket.io-redis package can solve this by adding a few lines to our code.
+
+0. Install and start Redis server (in this example we install it locally)
+* brew install redis
+* redis-server
+   
+1. Revise some code: add the following code right after 'io' - the socket - is created
+
+-----------------------------------------------------
+var redis = require('socket.io-redis');
+  //import socket.io-redis
+io.adapter(redis({ host: 'localhost', port: 6379 }));
+  //'host' and 'port' should be filled with the ip address and port of the Redis server that we just installed
+-----------------------------------------------------
+
+Also, add dependency in the file 'package.json': "socket.io-redis": "^0.1.4"
+
+If this doesn't work, uninstall socket.io-redis and reinstall it by using 'sudo':
+* npm uninstall socket.io-redis
+* sudo npm install socket.io-redis
+
+If still doesn't work, install socket.io again.
+
+https://github.com/automattic/socket.io-redis
+

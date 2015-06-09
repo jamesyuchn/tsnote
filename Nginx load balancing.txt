@@ -156,6 +156,7 @@ http {
 include servers/*;
 --------------------------------------------
 
-*the "ip_hash;" means each ip is hashed to a fixed server, so the socket will work normally
-*the upstream part determins how many servers are involved
+* main modifications: add 'upstream app{...}' part and change the 'location /{...}' part, be careful that the two 'myapp' are related to each other.
+* the "ip_hash;" means each ip is hashed to a fixed server, so the socket will work normally
+* the upstream part determins how many servers are involved
 *`sudo nginx -s reload` means reload nginx after modifying ngnix.configuration
