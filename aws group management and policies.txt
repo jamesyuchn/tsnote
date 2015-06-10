@@ -1,0 +1,25 @@
+note about setting certain priviledge on aws
+--------------------------------------------
+
+It is dangerous stopping production servers by mistake, or even terminating it, by accident. I read some aws documentation and find a way to prevent it.
+
+0. Setup an AWS account, login into root priviledge and prepare certain user for test use.
+Also, create a group called 'developer', for example.
+
+1. Upright courner, 'Security Credentials' -> Left, 'Groups' -> get into 'developer'
+
+2. Scroll down to 'Permissions', 'Attach Policy', find 'AmazonEC2FullAccess' and attach it
+
+3. Create a policy in 'Inline Policies', -> 'Policy Generator', select:
+
+Effect: 'Deny', AWS Service: 'Amazon EC2', Action: 'StopInstances' and 'TerminateInstances',
+
+Then ARN: 'arn:aws:ec2:us-east-1:*:instance/i-36bb32e0'
+//the i-36bb32e0 is my EC2 Instance ID
+
+*Rule of ARN: http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+
+Finally, review and save the policy, it works immediately. Any user in this group will be affected.
+
+This can also be performed to a single user, by selecting 'Users' and the following steps are the same.
+
