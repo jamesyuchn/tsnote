@@ -1,0 +1,24 @@
+Note about using nginx to serve static files instead of nodejs
+--------------------------------------------------------------
+
+0. setup a nginx and nodejs working environment
+
+1. open nginx.conf and add following code in http{server{...[add here]}}
+-------------------------------------------------------------------
+location ~ ^/(doc|email_templates|font-awesome|fonts|images|img)$ {
+        root         /home/ubuntu/tetrascience_cloud/public;
+        access_log   off;
+        expires      30d;
+        }
+location ~ ^/(css|javascripts|js|stylesheets|views)$ {
+        root         /home/ubuntu/tetrascience_cloud/public;
+        access_log   off;
+        expires      24h;
+        }
+-------------------------------------------------------------------
+    replace the '/home/ubuntu' to tetrascience_cloud folder
+	
+*the place of nginx.conf can be found by using shell command 'nginx -V', and find '--conf-path'
+
+*the 'css|javascripts|js...' part are related to folders in 'tetrascience_cloud/public', once the project added a folder in it, don't forget to add it into 'nginx.conf'
+
