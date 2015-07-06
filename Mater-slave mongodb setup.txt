@@ -1,6 +1,8 @@
 Tutorial about setting up a master-slave mode Mongodb
 -----------------------------------------------------
 
+*updated on 07/06/2015, for authenticated connections
+
 0. Create an AWS account and two t2.micro instances of Amazon EC2 (follow aws documentation)
 download and copy .pem key to ssh folder
 
@@ -35,3 +37,63 @@ Note about connecting RDS(postgresql) to EC2 instance
 sudo psql --host=ts-db-test.c60kkehg3nub.us-east-1.rds.amazonaws.com --port=5432 --username=tsdbuser --password --dbname=testdb
 // host name, user name and dbname should be modified
 
+==============================================================================
+            MongoDB Master-Slave (Authentication) updated 07/06/2015
+==============================================================================
+
+A new challenge of this is to add authentication part to master-slave mode. From version 2.6 and after, mongodb can only use keyfile to setup authentication.
+
+First part is to add authentication between server and Mongodb (Master role)
+
+0. Get to mongodb command line. Type following lines to add two users, one admin user and another is our ts database user:
+
+-----------------------------------------------------------
+use admin
+db.createUser({user:"root",pwd:"root",roles:["root"]})
+use ts
+db.createUser({user:"root",pwd:"root",roles:["readWrite"]})
+-----------------------------------------------------------
+
+The user names/passwords can be different. We only use the user which has the role 'readWrite'. Admin user is not used but necessary.
+
+1. Open config.js and get to 'mongodbObj'. Change 'devMongo' line to:
+
+devMongo : 'mongodb://root:root@172.31.58.231:27017/ts',
+
+root:root is the [user]:[password] of ts database (as is set above).
+
+2. Rerun mongodb with the following command:
+
+mongod --auth --dbpath /var/lib/mongodb
+
+*The 'dbpath' is the path of database
+
+Now the server can connect mongodb (master role) with authentication
+
+Then we setup several mongodb slaves and focus on a different way to perform authentication between master and slaves
+
+0. Setup mongodb slaves on several EC2 instances in the same subnet with master
+
+1. Create a keyfile:
+
+-----------------------------------------------------------
+openssl rand -base64 741 > mongodb-keyfile
+chmod 600 mongodb-keyfile
+-----------------------------------------------------------
+
+Then use 'scp' command to copy this keyfile to all mongodb servers
+
+scp -i [your pem key] mongodb-keyfile [your ec2 username]@ec2-[your ec2 address].compute-1.amazonaws.com:/[where you want to put the key]
+
+2. Use --keyFile [keyfile path] in 'mongod' command to enable this feature, both in master and slaves. The final command running mongodb is:
+
+For master:
+
+sudo mongod --rest --master --auth --dbpath /var/lib/mongodb --keyFile ~/mongodb-keyfile 
+
+For slave:
+
+sudo mongod --rest --slave --source 172.31.58.231:27017 --fastsync --autoresync --dbpath /var/lib/mongodb --keyFile ~/mongodb-keyfile 
+
+*Mention that you have to change database path and keyfile path to actual setting.
+*'--smallfile' can be removed as not necessary
